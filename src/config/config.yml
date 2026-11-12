@@ -9,7 +9,7 @@ adminRoleId: "1547085020957773884"
 
 welcome:
   enabled: true
-  channelId: "1476620469288308861"          # Channel ID for welcome messages ("" = system channel fallback)
+  channelId: "1558539095851008000"          # Channel ID for welcome messages ("" = system channel fallback)
   welcomeBots: false     # Send welcome messages for bots too
 
   # ── Render mode ────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ welcome:
   #   title (with thumbnail) → description → greeting → steps → outro → image → footer
   # Placeholders: {user} {mention} {username} {displayname} {displaynameStyled}
   #               {server} {membercount} {joined} {created}
-  title: "AVE Community"         # "" = no title line
+  title: "YT HIVE"         # "" = no title line
 
   # 📝 Main copy (/welcome "Edit Message"). Blank lines start a new paragraph.
   description: |-
