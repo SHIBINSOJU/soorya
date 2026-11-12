@@ -1,0 +1,27 @@
+{
+  "name": "ave-bot",
+  "version": "1.0.0",
+  "description": "AVE Discord Bot with Ticket System, Invite Tracking, and Moderation",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "discord.js": "^14.27.0",
+    "dotenv": "^18.0.5",
+    "gifwrap": "^0.10.1",
+    "jimp": "^0.22.12",
+    "kazagumo": "^3.4.3",
+    "mongoose": "^9.10.4",
+    "shoukaku": "^4.3.0",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
