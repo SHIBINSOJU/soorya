@@ -1,6 +1,6 @@
-# Setup Guide — AVE Discord Bot
+# Setup Guide — YT HIVE Discord Bot
 
-Get your AVE Bot online in a few simple steps.
+Get your YT HIVE Bot online in a few simple steps.
 
 ---
 
@@ -10,7 +10,7 @@ Get your AVE Bot online in a few simple steps.
 |---|---|
 | **Node.js** | v18+ (`node -v` to check) |
 | **npm** | Bundled with Node.js |
-| **MongoDB** | Local MongoDB (`mongodb://localhost:27017/ave_bot`) or free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster |
+| **MongoDB** | Local MongoDB (`mongodb://localhost:27017/yt_hive_bot`) or free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster |
 | **Discord Account** | Developer permissions to create applications and invite bots |
 
 ---
@@ -18,7 +18,7 @@ Get your AVE Bot online in a few simple steps.
 ## 2. Create Your Discord Application & Bot
 
 1. Open the [Discord Developer Portal](https://discord.com/developers/applications).
-2. Click **New Application** → Name it **AVE** (or your preferred name) → Click **Create**.
+2. Click **New Application** → Name it **YT HIVE** (or your preferred name) → Click **Create**.
 3. Go to **Bot** in the left sidebar:
    - Click **Reset Token** (or Copy Token). This is your `DISCORD_TOKEN`.
    - Scroll down to **Privileged Gateway Intents** and enable both:
@@ -51,7 +51,7 @@ Open `.env` in the bot's root folder and fill in your details:
 DISCORD_TOKEN=your_bot_token_here
 CLIENT_ID=your_client_id_here
 GUILD_ID=your_server_guild_id_here
-MONGODB_URI=mongodb://localhost:27017/ave_bot
+MONGODB_URI=mongodb://localhost:27017/yt_hive_bot
 ```
 
 ### How to get your Server (Guild) ID:
@@ -71,7 +71,7 @@ tickets:
   enabled: true
   panel:
     channelId: "YOUR_SUPPORT_CHANNEL_ID"      # Channel where /ticket panel is posted
-    title: "🎫 AVE Support Center"
+    title: "🎫 YT HIVE Support Center"
     description: "Need help? Select a category below.\nOur support team will assist you shortly."
   logs:
     enabled: true
@@ -126,7 +126,21 @@ logs:
 welcome:
   enabled: true
   channelId: "YOUR_WELCOME_CHANNEL_ID"
+  layout: "card"                          # "card" = one generated image, "classic" = copy blocks
+  accentColor: "#FF9F1C"                  # accent bar + avatar ring
+  card:
+    background:
+      path: "./assets/welcome-yt-hive.png"   # local artwork (wins over url)
+      url: ""
+    heading: "WELCOME TO"
+    title: "{server}"
+    subtitle: "You are member #{membercount} of the hive"
+    mention: "{mention}"                  # the ping above the card ("" = no ping)
+    icon: true                            # server icon next to the mention line
+    scrim: true                           # translucent panel behind the text
+    scrimOpacity: 0.45
 ```
+The card is rendered in memory for every join (avatar on the left, text on the right). Change `card.background.path` to swap the artwork — any PNG/JPG, or an animated GIF if you want it to move. `/welcome` edits all of this live per server.
 
 ---
 
@@ -152,7 +166,7 @@ npm run dev
 ...
 📊 Total Commands Loaded: 47
 📊 Total Events Loaded: 33
-[INFO] Logged in as AVE#0000!
+[INFO] Logged in as YT HIVE#0000!
 ✅ Successfully registered 47 slash commands.
 ```
 

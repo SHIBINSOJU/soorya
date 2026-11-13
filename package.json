@@ -1,7 +1,7 @@
 {
-  "name": "ave-bot",
+  "name": "yt-hive-bot",
   "version": "1.0.0",
-  "description": "AVE Discord Bot with Ticket System, Invite Tracking, and Moderation",
+  "description": "YT HIVE Discord Bot with Ticket System, Invite Tracking, and Moderation",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

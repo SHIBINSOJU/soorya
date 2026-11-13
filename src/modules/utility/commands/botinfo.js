@@ -20,7 +20,7 @@ module.exports = {
 
             await interaction.editReply({
                 ...buildInfoContainer({
-                    header: `🤖 ${client.user?.tag ?? 'AVE Bot'}`,
+                    header: `🤖 ${client.user?.tag ?? 'YT HIVE Bot'}`,
                     fields: [
                         { label: 'Bot name', value: client.user?.tag ?? 'Unknown' },
                         { label: 'Bot version', value: `v${botVersion}` },

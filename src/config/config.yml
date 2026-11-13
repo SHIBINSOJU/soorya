@@ -14,12 +14,13 @@ welcome:
 
   # ── Render mode ────────────────────────────────────────────────────────────
   # "classic" = title + copy blocks + banner image (everything configured below).
-  # "card"    = ONE generated image: member avatar on the left, "Welcome to
-  #             {server}" / "You are our #N member" on the right, plus a tiny
-  #             mention line. See the `card:` section further down.
+  # "card"    = ONE generated image: member avatar on the left, "WELCOME TO /
+  #             {server}" / "You are member #N of the hive" on the right, plus
+  #             a tiny mention line. See the `card:` section further down.
   # A single server can switch modes at runtime: /welcome → 🧩 Layout (saved per
   # server in GuildSettings.welcome.layout, so one bot can serve both styles).
-  layout: "classic"
+  # YT HIVE uses the generated "card" image (see the `card:` section below).
+  layout: "card"
 
   # ── Welcome message layout ─────────────────────────────────────────────────
   # Rendered top → bottom in this order:
@@ -32,7 +33,7 @@ welcome:
   description: |-
     Hey {mention} 👋
 
-    Welcome to AVE!
+    Welcome to YT HIVE!
 
     We're glad to have you here. Take a moment to explore the server, check the rules, and get familiar with the community.
 
@@ -52,22 +53,25 @@ welcome:
   usernameInCard: false          # 🎨 true = bake the member's name into ./assets/welcome.gif (no banner image)
   separatorEnabled: true         # ➖ divider lines between the blocks above
 
-  accentColor: "#57F287"         # green accent bar on the left of the container
+  accentColor: "#FF9F1C"         # amber accent bar on the left of the container + avatar ring
 
   # 🖼️ Header thumbnail: the small square picture next to the title.
   # url = remote link · path = local file uploaded with the message (Discord CDN
   # links expire, a local file never does). Falls back to the member's avatar.
+  # Off for YT HIVE: the card layout shows the real server icon instead of a
+  # static logo.
   thumbnail:
-    enabled: true
-    url: "https://media.discordapp.net/attachments/1547203322077913159/1547203546540281968/AVE_animated.gif?ex=6af64857&is=6af4f6d7&hm=066e11d30e2a9ae9b8d7d769dec80508e68df690d6f4a002d225816f3354b6bb&="
+    enabled: false
+    url: ""
     path: ""                     # e.g. "./assets/welcome-thumbnail.gif" (wins over url)
 
   # 🖼️ Banner image at the bottom of the welcome message (the wide gif).
   # When a valid url or path is set it wins over the legacy welcome card / gif below.
+  # Doubles as the fallback picture if the card render ever fails.
   image:
     enabled: true
-    url: "https://cdn.discordapp.com/attachments/1547203322077913159/1547203546091364492/z0IPi.gif?ex=6af64857&is=6af4f6d7&hm=10584a7e8a5a4643b3f0b89d21b99e9864762ba71b4a46a1d2ab3b547cf1b4a6&="
-    path: ""                     # e.g. "./assets/welcome-banner.gif" (wins over url)
+    url: ""
+    path: "./assets/welcome-yt-hive.png"   # local file wins over url
 
   # Legacy animated welcome GIF — only used when no banner image url is set.
   # source: "url"  -> uses the http(s) url below
@@ -88,15 +92,15 @@ welcome:
   # animated GIF background stays animated. Nothing is written to disk.
   card:
     background:
-      path: ""             # e.g. "./assets/welcome-bg.png"
+      path: "./assets/welcome-yt-hive.png"   # YT HIVE honeycomb artwork (no text baked in)
       url: ""              # used only when no local path is set
     heading: "WELCOME TO"                       # small line
     title: "{server}"                           # big line
-    subtitle: "You are our #{membercount} member"
+    subtitle: "You are member #{membercount} of the hive"
     mention: "{mention}"   # tiny line sent above the card — this is the ping; "" = no ping
     icon: true             # show the server icon next to the mention line
     scrim: true            # translucent panel behind the text so it stays readable on light artwork
-    scrimOpacity: 0.6      # 0 = invisible, 1 = solid black
+    scrimOpacity: 0.45     # 0 = invisible, 1 = solid black
 
 moderation:
   logs:
@@ -215,7 +219,7 @@ tickets:
 
   panel:
     channelId: "1478780183291887636"           # Default channel for /ticket panel ("" = current channel)
-    title: "🎫 AVE Support Center"
+    title: "🎫 YT HIVE Support Center"
     description: "Need help? Select a category below.\nOur support team will assist you shortly."
 
   logs:

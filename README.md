@@ -1,4 +1,4 @@
-# AVE Bot — Modular Discord Bot
+# YT HIVE Bot — Modular Discord Bot
 
 A production-quality, highly modular Discord bot built with **Node.js**, **discord.js v14**, and **MongoDB**. Features a complete Discord Components V2 ticket system, comprehensive invite tracking, server logging, automod, moderation, welcome cards, and utilities.
 
@@ -38,7 +38,7 @@ See [`setup.md`](setup.md) for step-by-step setup and configuration.
 | 📨 **Invite Tracking** | Automatic invite detection on join, member leave tracking, fake account detection (<3 days), bonus invites, leaderboards | `/invites user`, `/invites leaderboard`, `/invites add`, `/invites remove`, `/invites reset`, `/invites sync` |
 | 🛡️ **Moderation** | Persistent warnings, kick, ban, unban, timeout, channel lock/unlock, slowmode, message purge | `/warn`, `/unwarn`, `/warnings`, `/kick`, `/ban`, `/unban`, `/timeout`, `/clear`, `/lock`, `/unlock`, `/slowmode` |
 | 📜 **Server Logs** | Centralized audit & event logging (member joins/leaves/invites, messages, voice, roles, channels, server changes) | `/logs` |
-| 👋 **Welcome** | Two per-server layouts: sectioned copy (title, steps, banner) or a generated avatar card image with server name & member count, plus `{placeholder}` support | `/welcome`, `/testwelcome` |
+| 👋 **Welcome** | Two per-server layouts: sectioned copy (title, steps, banner) or a generated avatar card image over the YT HIVE honeycomb artwork, with server name & member count, plus `{placeholder}` support | `/welcome`, `/testwelcome` |
 | 🤖 **AutoMod** | Multi-rule automated moderation (anti-link, anti-invite, spam, duplicate messages, mention spam, caps, word filter, anti-raid) | `/automod status`, `/automod rule` |
 | 🔗 **Anti-Link** | URL blocking with role/channel exemptions, customizable warnings, and cooldowns | `/antilink` |
 | 🎭 **AutoRole** | Automatically assign roles to joining members with delay options | `/autorole` |
@@ -58,7 +58,7 @@ See [`setup.md`](setup.md) for step-by-step setup and configuration.
 DISCORD_TOKEN=your_bot_token_here
 CLIENT_ID=your_client_id_here
 GUILD_ID=your_server_id_here
-MONGODB_URI=mongodb://localhost:27017/ave_bot
+MONGODB_URI=mongodb://localhost:27017/yt_hive_bot
 ```
 
 ### 2. Bot Configuration (`src/config/config.yml`)
@@ -76,7 +76,9 @@ Configure channels, roles, and categories:
   - Configure individual logging channels for `member`, `message`, `voice`, `channel`, `role`, `moderation`, `server`, and `invite`.
 - **`welcome:`**
   - `channelId`: channel for welcome messages.
-  - `gif`: configure local GIF card or hosted URL.
+  - `layout`: `"card"` (one generated image with the member avatar over `card.background`) or `"classic"` (title/copy/steps/banner blocks).
+  - `card`: the heading / title / subtitle lines drawn on the artwork, plus the `{mention}` ping line and the text scrim.
+  - `accentColor`: accent bar and avatar ring colour.
 
 ---
 

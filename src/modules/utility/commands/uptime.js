@@ -13,7 +13,7 @@ module.exports = {
             const uptimeMs = interaction.client.uptime ?? process.uptime() * 1000;
             await interaction.editReply({
                 ...buildInfoContainer({
-                    header: '🟢 AVE Uptime',
+                    header: '🟢 YT HIVE Uptime',
                     fields: [
                         { label: 'Uptime', value: formatDuration(uptimeMs) },
                         { label: 'Started', value: formatTimestamp(new Date(Date.now() - uptimeMs)) }

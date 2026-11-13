@@ -306,7 +306,10 @@ async function composeAvatarCard(member, config = {}) {
     if (!background.animated) {
         const canvas = GifUtil.shareAsJimp(Jimp, background.canvases[0]);
         canvas.composite(overlay, 0, 0);
-        return { buffer: await canvas.getBufferAsync(Jimp.MIME_PNG), name: 'welcome-card.png' };
+        // A photographic background is fully opaque, so the static card is sent
+        // as high-quality JPEG — roughly 8x smaller than the same PNG.
+        canvas.quality(92);
+        return { buffer: await canvas.getBufferAsync(Jimp.MIME_JPEG), name: 'welcome-card.jpg' };
     }
 
     for (const canvas of background.canvases) {

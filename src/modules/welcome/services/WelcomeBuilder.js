@@ -115,12 +115,20 @@ async function buildCardPayload(member, config) {
         : fillPlaceholders('{mention}', member);
 
     if (mention) {
-        const section = new SectionBuilder().addTextDisplayComponents(
-            new TextDisplayBuilder().setContent(`-# ${mention}`)
-        );
         const icon = resolveServerIconURL(member, config, files);
-        if (icon) section.setThumbnailAccessory(new ThumbnailBuilder().setURL(icon));
-        container.addSectionComponents(section);
+        // A Section always needs an accessory, so a server without an icon
+        // gets the plain mention line instead of an unsendable payload.
+        if (icon) {
+            const section = new SectionBuilder().addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(`-# ${mention}`)
+            );
+            section.setThumbnailAccessory(new ThumbnailBuilder().setURL(icon));
+            container.addSectionComponents(section);
+        } else {
+            container.addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(`-# ${mention}`)
+            );
+        }
     }
 
     const card = await composeAvatarCard(member, config).catch((error) => {

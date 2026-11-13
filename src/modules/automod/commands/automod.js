@@ -389,7 +389,7 @@ async function showStatus(interaction) {
     });
     await interaction.editReply({
         ...buildInfoContainer({
-            header: '🛡️ AVE AUTOMOD',
+            header: '🛡️ YT HIVE AUTOMOD',
             fields: [
                 { label: 'System', value: config.enabled ? '🟢 Enabled' : '🔴 Disabled' },
                 { label: 'Rules', value: ruleLines.join('\n') },

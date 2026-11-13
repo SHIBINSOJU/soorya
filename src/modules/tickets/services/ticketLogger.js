@@ -102,7 +102,7 @@ async function logTicket(guild, { title, accent = 0x5865F2, fields = [] }) {
  * check fails so the caller can keep the ticket channel.
  */
 async function writeVerifiedTempTranscript(buffer) {
-    const dir = path.join(os.tmpdir(), 'ave-ticket-transcripts');
+    const dir = path.join(os.tmpdir(), 'yt-hive-ticket-transcripts');
     await fs.mkdir(dir, { recursive: true });
     const tmpPath = path.join(
         dir,
