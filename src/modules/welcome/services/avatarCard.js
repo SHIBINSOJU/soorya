@@ -107,7 +107,16 @@ async function loadBackground(config) {
             height: image.bitmap.height,
             data: Buffer.from(image.bitmap.data)
         });
-        return { animated: false, source: null, canvases: [canvas], width: canvas.width, height: canvas.height };
+        // BitmapImage exposes dimensions only through `bitmap` — reading
+        // `canvas.width` yields undefined and would silently fall back to the
+        // 960x400 layout on a full-size canvas.
+        return {
+            animated: false,
+            source: null,
+            canvases: [canvas],
+            width: image.bitmap.width,
+            height: image.bitmap.height
+        };
     } catch (error) {
         logger.warn(`Welcome card: background image could not be decoded: ${error.message}`);
         return null;

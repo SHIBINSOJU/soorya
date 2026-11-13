@@ -100,9 +100,10 @@ function resolveServerIconURL(member, config, files) {
 }
 
 /**
- * "Card" layout: one tiny mention line (server icon as its Section accessory)
- * and the rendered avatar card image. No other text is sent — the card itself
- * carries "Welcome to {server}" and "You are our #N member".
+ * "Card" layout: one tiny mention line (server icon as its Section accessory),
+ * the rendered avatar card image, and an optional small footer line inside the
+ * container. The card itself carries "Welcome to {server}" and "You are our
+ * #N member" — the footer is Discord text, never baked into the artwork.
  */
 async function buildCardPayload(member, config) {
     const container = new ContainerBuilder();
@@ -159,6 +160,17 @@ async function buildCardPayload(member, config) {
                 );
             }
         }
+    }
+
+    if (config?.footer?.enabled && config.footer?.text) {
+        if (config.separatorEnabled !== false) {
+            container.addSeparatorComponents(
+                new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small)
+            );
+        }
+        container.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`-# ${fillPlaceholders(config.footer.text, member).trim()}`)
+        );
     }
 
     if (container.components.length === 0) {

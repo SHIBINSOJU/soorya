@@ -53,7 +53,7 @@ welcome:
   usernameInCard: false          # 🎨 true = bake the member's name into ./assets/welcome.gif (no banner image)
   separatorEnabled: true         # ➖ divider lines between the blocks above
 
-  accentColor: "#FF9F1C"         # amber accent bar on the left of the container + avatar ring
+  accentColor: "#A855F7"         # violet accent bar on the left of the container + avatar ring
 
   # 🖼️ Header thumbnail: the small square picture next to the title.
   # url = remote link · path = local file uploaded with the message (Discord CDN
@@ -71,7 +71,7 @@ welcome:
   image:
     enabled: true
     url: ""
-    path: "./assets/welcome-yt-hive.png"   # local file wins over url
+    path: "./assets/welcome-yt-hive-purple.png"   # local file wins over url
 
   # Legacy animated welcome GIF — only used when no banner image url is set.
   # source: "url"  -> uses the http(s) url below
@@ -82,9 +82,11 @@ welcome:
     url: ""                    # e.g. "https://example.com/welcome.gif"
     path: "./assets/welcome.gif"  # used when source is "local"
 
+  # Footer line — rendered as small text INSIDE the container (below the card
+  # image, never baked into the artwork). Also used by the classic layout.
   footer:
-    enabled: false
-    text: "You are member #{membercount} — enjoy your stay!"
+    enabled: true
+    text: "Enjoy your stay in YT HIVE."
 
   # ── "Card" layout artwork (only used when layout: "card") ─────────────────
   # The image is drawn in memory: background + circular avatar (left) + text
@@ -92,7 +94,7 @@ welcome:
   # animated GIF background stays animated. Nothing is written to disk.
   card:
     background:
-      path: "./assets/welcome-yt-hive.png"   # YT HIVE honeycomb artwork (no text baked in)
+      path: "./assets/welcome-yt-hive-purple.png"   # YT HIVE violet artwork (no text baked in)
       url: ""              # used only when no local path is set
     heading: "WELCOME TO"                       # small line
     title: "{server}"                           # big line

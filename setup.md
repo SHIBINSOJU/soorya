@@ -127,10 +127,13 @@ welcome:
   enabled: true
   channelId: "YOUR_WELCOME_CHANNEL_ID"
   layout: "card"                          # "card" = one generated image, "classic" = copy blocks
-  accentColor: "#FF9F1C"                  # accent bar + avatar ring
+  accentColor: "#A855F7"                  # accent bar + avatar ring
+  footer:
+    enabled: true                         # small line under the card, inside the container
+    text: "Enjoy your stay in YT HIVE."    # never drawn into the image
   card:
     background:
-      path: "./assets/welcome-yt-hive.png"   # local artwork (wins over url)
+      path: "./assets/welcome-yt-hive-purple.png"   # local artwork (wins over url)
       url: ""
     heading: "WELCOME TO"
     title: "{server}"
