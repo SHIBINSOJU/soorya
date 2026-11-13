@@ -15,6 +15,7 @@ const logger = require('../../../core/logger');
 const { resolveWelcomeMedia, resolvePictureSource } = require('./welcomeMedia');
 const { composeWelcomeCard } = require('./welcomeCard');
 const { composeAvatarCard } = require('./avatarCard');
+const { resolveInviteCredit } = require('./inviteCredit');
 const { normalizeLayout } = require('./settings');
 
 const CARD_ATTACHMENT = 'welcome-card.gif';
@@ -100,35 +101,56 @@ function resolveServerIconURL(member, config, files) {
 }
 
 /**
- * "Card" layout: one tiny mention line (server icon as its Section accessory),
- * the rendered avatar card image, and an optional small footer line inside the
- * container. The card itself carries "Welcome to {server}" and "You are our
- * #N member" — the footer is Discord text, never baked into the artwork.
+ * "Card" layout, top → bottom:
+ *   greeting ("👋 Welcome, {displayname}")  [server icon]
+ *   -# mention (the ping)
+ *   [card image]
+ *   ──────────
+ *   -# invitedBy ("📨 Invited by @x")
+ *   -# footer ("Enjoy your stay in YT HIVE.")
+ * Every line above/below the image is Discord text — the artwork never carries
+ * copy. `extra` carries resolved tokens such as {inviter}.
  */
-async function buildCardPayload(member, config) {
+async function buildCardPayload(member, config, extra = {}) {
     const container = new ContainerBuilder();
     const accent = parseColor(config.accentColor);
     if (accent !== null) container.setAccentColor(accent);
 
     const files = [];
+    const expand = (value) => (typeof value === 'string' ? fillPlaceholders(value, member, extra).trim() : '');
+
+    const greeting = expand(config.greeting);
     const mention = typeof config?.card?.mention === 'string'
-        ? fillPlaceholders(config.card.mention, member).trim()
-        : fillPlaceholders('{mention}', member);
+        ? expand(config.card.mention)
+        : fillPlaceholders('{mention}', member, extra);
+    const icon = resolveServerIconURL(member, config, files);
+
+    if (greeting) {
+        const text = new TextDisplayBuilder().setContent(greeting);
+        // A Section always needs an accessory, so the icon is only attached
+        // when one resolvable exist; otherwise the line stands alone.
+        if (icon) {
+            container.addSectionComponents(
+                new SectionBuilder().addTextDisplayComponents(text).setThumbnailAccessory(
+                    new ThumbnailBuilder().setURL(icon)
+                )
+            );
+        } else {
+            container.addTextDisplayComponents(text);
+        }
+    }
 
     if (mention) {
-        const icon = resolveServerIconURL(member, config, files);
-        // A Section always needs an accessory, so a server without an icon
-        // gets the plain mention line instead of an unsendable payload.
-        if (icon) {
-            const section = new SectionBuilder().addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(`-# ${mention}`)
+        const text = new TextDisplayBuilder().setContent(`-# ${mention}`);
+        // The icon already decorates the greeting — never show it twice.
+        if (!greeting && icon) {
+            container.addSectionComponents(
+                new SectionBuilder().addTextDisplayComponents(text).setThumbnailAccessory(
+                    new ThumbnailBuilder().setURL(icon)
+                )
             );
-            section.setThumbnailAccessory(new ThumbnailBuilder().setURL(icon));
-            container.addSectionComponents(section);
         } else {
-            container.addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(`-# ${mention}`)
-            );
+            container.addTextDisplayComponents(text);
         }
     }
 
@@ -162,15 +184,21 @@ async function buildCardPayload(member, config) {
         }
     }
 
-    if (config?.footer?.enabled && config.footer?.text) {
+    const invitedBy = expand(config.invitedBy);
+    const footer = config?.footer?.enabled ? expand(config.footer.text) : '';
+
+    if (invitedBy || footer) {
         if (config.separatorEnabled !== false) {
             container.addSeparatorComponents(
                 new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small)
             );
         }
-        container.addTextDisplayComponents(
-            new TextDisplayBuilder().setContent(`-# ${fillPlaceholders(config.footer.text, member).trim()}`)
-        );
+        if (invitedBy) {
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${invitedBy}`));
+        }
+        if (footer) {
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${footer}`));
+        }
     }
 
     if (container.components.length === 0) {
@@ -207,8 +235,11 @@ async function buildCardPayload(member, config) {
  */
 class WelcomeBuilder {
     static async build(member, config = {}) {
+        // {inviter} is resolved once, only when a line actually asks for it.
+        const extra = config?.invitedBy ? await resolveInviteCredit(member) : {};
+
         // "card" is the avatar card layout; anything else is the sectioned copy.
-        if (normalizeLayout(config.layout) === 'card') return buildCardPayload(member, config);
+        if (normalizeLayout(config.layout) === 'card') return buildCardPayload(member, config, extra);
 
         const container = new ContainerBuilder();
 
@@ -222,7 +253,7 @@ class WelcomeBuilder {
         const divider = () => new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small);
         const expand = (value) => {
             if (typeof value !== 'string') return '';
-            return fillPlaceholders(value, member).trim();
+            return fillPlaceholders(value, member, extra).trim();
         };
 
         // Pictures may be remote URLs or local files uploaded as attachments,

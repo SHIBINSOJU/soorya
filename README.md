@@ -38,7 +38,7 @@ See [`setup.md`](setup.md) for step-by-step setup and configuration.
 | 📨 **Invite Tracking** | Automatic invite detection on join, member leave tracking, fake account detection (<3 days), bonus invites, leaderboards | `/invites user`, `/invites leaderboard`, `/invites add`, `/invites remove`, `/invites reset`, `/invites sync` |
 | 🛡️ **Moderation** | Persistent warnings, kick, ban, unban, timeout, channel lock/unlock, slowmode, message purge | `/warn`, `/unwarn`, `/warnings`, `/kick`, `/ban`, `/unban`, `/timeout`, `/clear`, `/lock`, `/unlock`, `/slowmode` |
 | 📜 **Server Logs** | Centralized audit & event logging (member joins/leaves/invites, messages, voice, roles, channels, server changes) | `/logs` |
-| 👋 **Welcome** | Two per-server layouts: sectioned copy (title, steps, banner) or a generated avatar card image over the YT HIVE violet hexagon artwork, with server name, member count and a footer line, plus `{placeholder}` support | `/welcome`, `/testwelcome` |
+| 👋 **Welcome** | Two per-server layouts: sectioned copy (title, steps, banner) or a generated avatar card image over the YT HIVE violet hexagon artwork — bold text on a tinted plate — with a greeting line, the member count, invite credit and a footer, plus `{placeholder}` support | `/welcome`, `/testwelcome` |
 | 🤖 **AutoMod** | Multi-rule automated moderation (anti-link, anti-invite, spam, duplicate messages, mention spam, caps, word filter, anti-raid) | `/automod status`, `/automod rule` |
 | 🔗 **Anti-Link** | URL blocking with role/channel exemptions, customizable warnings, and cooldowns | `/antilink` |
 | 🎭 **AutoRole** | Automatically assign roles to joining members with delay options | `/autorole` |
@@ -77,8 +77,11 @@ Configure channels, roles, and categories:
 - **`welcome:`**
   - `channelId`: channel for welcome messages.
   - `layout`: `"card"` (one generated image with the member avatar over `card.background`) or `"classic"` (title/copy/steps/banner blocks).
-  - `card`: the heading / title / subtitle lines drawn on the artwork, plus the `{mention}` ping line and the text scrim.
-  - `accentColor`: accent bar and avatar ring colour.
+  - `greeting`: the "👋 Welcome, {displayname}!" line above the message (server icon rides along when `card.icon` is on).
+  - `card`: the heading / title / subtitle lines drawn on the artwork, plus the `{mention}` ping line and the rounded text plate (`scrimColor`, `scrimOpacity`, `scrimBorder`).
+  - `invitedBy`: the invite-credit line under the card; `{inviter}` is the member who invited them (falls back to "someone").
+  - `footer`: the closing line ("Enjoy your stay in YT HIVE.") — Discord text, never baked into the image.
+  - `accentColor`: accent bar, avatar ring, plate hairline colour.
 
 ---
 

@@ -75,8 +75,33 @@ function outlineThickness(font) {
     return Math.max(1, Math.round(size / 16));
 }
 
-function buildTextSprite(font, text, outline) {
-    const pad = outline + 2;
+/** Square dilation of a 1-bit mask — thickens glyph strokes. */
+function dilateMask(mask, width, height, radius) {
+    const out = new Uint8Array(mask.length);
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            if (mask[y * width + x] === 0) continue;
+            for (let dy = -radius; dy <= radius; dy++) {
+                const ny = y + dy;
+                if (ny < 0 || ny >= height) continue;
+                for (let dx = -radius; dx <= radius; dx++) {
+                    const nx = x + dx;
+                    if (nx < 0 || nx >= width) continue;
+                    out[ny * width + nx] = 1;
+                }
+            }
+        }
+    }
+    return out;
+}
+
+/**
+ * Renders one line of text as a white sprite with a black outline.
+ * `bold` dilates the glyph mask before drawing, because Jimp bitmap fonts
+ * only ship a single weight — this is the synthetic bold for card headings.
+ */
+function buildTextSprite(font, text, outline, bold = 0) {
+    const pad = outline + bold + 2;
     const lineHeight = Number(font.common?.lineHeight) || (Number(font.info?.size) || 32) * 2;
     const width = Math.max(1, Jimp.measureText(font, text));
     const sw = width + 2 * pad;
@@ -88,12 +113,13 @@ function buildTextSprite(font, text, outline) {
     const src = glyph.bitmap.data;
     const mask = new Uint8Array(sw * sh);
     for (let i = 0; i < sw * sh; i++) mask[i] = src[i * 4 + 3] >= 128 ? 1 : 0;
+    const shape = bold > 0 ? dilateMask(mask, sw, sh, bold) : mask;
 
     const sprite = new Jimp(sw, sh, 0x00000000);
     const dst = sprite.bitmap.data;
     for (let y = 0; y < sh; y++) {
         for (let x = 0; x < sw; x++) {
-            if (mask[y * sw + x] === 0) continue;
+            if (shape[y * sw + x] === 0) continue;
             for (let dy = -outline; dy <= outline; dy++) {
                 const ny = y + dy;
                 if (ny < 0 || ny >= sh) continue;
@@ -110,7 +136,7 @@ function buildTextSprite(font, text, outline) {
         }
     }
     for (let i = 0; i < sw * sh; i++) {
-        if (mask[i] === 0) continue;
+        if (shape[i] === 0) continue;
         const di = i * 4;
         dst[di] = 255;
         dst[di + 1] = 255;

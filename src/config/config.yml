@@ -49,7 +49,9 @@ welcome:
   # Optional closing line.
   outro: "⚡ **Enjoy your stay!**"
 
-  greeting: ""                   # styled username line; "" = hidden
+  # Greeting line. In the card layout it sits above the card (with the server
+  # icon); in the classic layout it follows the description. "" = hidden.
+  greeting: "👋 Welcome, {displayname}!"
   usernameInCard: false          # 🎨 true = bake the member's name into ./assets/welcome.gif (no banner image)
   separatorEnabled: true         # ➖ divider lines between the blocks above
 
@@ -88,6 +90,11 @@ welcome:
     enabled: true
     text: "Enjoy your stay in YT HIVE."
 
+  # Credit line under the card: who invited the new member. Read from the
+  # invite-tracking data; {inviter} becomes a mention, or "someone" when the
+  # invite could not be resolved. "" = hidden.
+  invitedBy: "📨 Invited by {inviter}"
+
   # ── "Card" layout artwork (only used when layout: "card") ─────────────────
   # The image is drawn in memory: background + circular avatar (left) + text
   # (right). Point `path` at a PNG/JPG/GIF in the project (wins over `url`); an
@@ -101,8 +108,11 @@ welcome:
     subtitle: "You are member #{membercount} of the hive"
     mention: "{mention}"   # tiny line sent above the card — this is the ping; "" = no ping
     icon: true             # show the server icon next to the mention line
-    scrim: true            # translucent panel behind the text so it stays readable on light artwork
-    scrimOpacity: 0.45     # 0 = invisible, 1 = solid black
+    # The text sits on a rounded "plate" so the card reads as one designed block.
+    scrim: true            # false = bare text over the artwork
+    scrimColor: "#231044"  # plate tint ("#000000" = plain black)
+    scrimOpacity: 0.8      # 0 = invisible, 1 = solid
+    scrimBorder: true      # 2px accent hairline around the plate
 
 moderation:
   logs:

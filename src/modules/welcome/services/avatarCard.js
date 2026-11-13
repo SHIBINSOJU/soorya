@@ -226,14 +226,16 @@ function roundedPanel(width, height, radius, color) {
  * Draws scrim + ring + avatar + text into one transparent layer, so the
  * (possibly hundred-frame) background only gets a single composite per frame.
  */
-async function buildOverlay({ width, height, avatar, avatarX, avatarY, avatarSize, lines, textX, textWidth, accentColor, scrimColor }) {
+async function buildOverlay({ width, height, avatar, avatarX, avatarY, avatarSize, lines, textX, textWidth, accentColor, scrimColor, borderColor = null }) {
     const overlay = new Jimp(width, height, 0x00000000);
 
-    // Each line: font sized from the canvas height, then scaled to fit its column.
+    // Each line: font sized from the canvas height, then scaled to fit its
+    // column. Every line is synthetically bolded (bitmap fonts have one weight).
     const sprites = [];
     for (const line of lines) {
         const font = await nearestFont(line.fonts, line.size * height);
-        const { sprite, pad } = buildTextSprite(font, line.text, outlineThickness(font));
+        const bold = Math.max(1, Math.round((Number(font.info?.size) || 32) / 24));
+        const { sprite, pad } = buildTextSprite(font, line.text, outlineThickness(font), bold);
         sprites.push(fitSprite(sprite, pad, textWidth));
     }
 
@@ -242,15 +244,34 @@ async function buildOverlay({ width, height, avatar, avatarX, avatarY, avatarSiz
     const total = flows.reduce((sum, flow) => sum + flow, 0) + gap * (sprites.length - 1);
     const top = Math.round((height - total) / 2);
 
+    // The text block is centred in the column to the right of the avatar: left
+    // aligned at `textX` it leaves a dead gap on wide artwork.
+    const widest = Math.max(...sprites.map((entry) => entry.sprite.bitmap.width - entry.pad * 2));
+    const rightEdge = width - Math.round(width * 0.05);
+    const columnWidth = Math.max(widest, rightEdge - textX);
+    const shift = Math.max(0, Math.round((columnWidth - widest) / 2));
+    const drawX = textX + shift;
+
     if (scrimColor !== null) {
-        const padX = Math.round(width * 0.022);
-        const padY = Math.round(height * 0.055);
-        const left = Math.round(textX - padX);
-        const panelWidth = Math.round(width * 0.97) - left;
-        const panelHeight = Math.min(height - Math.round(height * 0.04), Math.round(total + padY * 2));
+        const padX = Math.round(width * 0.03);
+        const padY = Math.round(height * 0.075);
+        const left = Math.round(drawX - padX);
+        // Snug plate: the widest line plus padding, never wider than the canvas.
+        const panelWidth = Math.min(Math.round(width * 0.975) - left, widest + padX * 2);
+        const panelHeight = Math.min(height - Math.round(height * 0.045), Math.round(total + padY * 2));
         const panelTop = Math.round((height - panelHeight) / 2);
+        const radius = Math.round(height * 0.06);
         if (panelWidth > 0 && panelHeight > 0) {
-            overlay.composite(roundedPanel(panelWidth, panelHeight, Math.round(height * 0.045), scrimColor), left, panelTop);
+            if (borderColor !== null) {
+                // 2px accent hairline: a slightly larger plate drawn underneath.
+                const ring = 2;
+                overlay.composite(
+                    roundedPanel(panelWidth + ring * 2, panelHeight + ring * 2, radius + ring, borderColor),
+                    left - ring,
+                    panelTop - ring
+                );
+            }
+            overlay.composite(roundedPanel(panelWidth, panelHeight, radius, scrimColor), left, panelTop);
         }
     }
 
@@ -260,7 +281,7 @@ async function buildOverlay({ width, height, avatar, avatarX, avatarY, avatarSiz
 
     let y = top;
     sprites.forEach((entry, index) => {
-        overlay.composite(entry.sprite, Math.round(textX - entry.pad), Math.round(y - entry.pad));
+        overlay.composite(entry.sprite, Math.round(drawX - entry.pad), Math.round(y - entry.pad));
         y += flows[index] + gap;
     });
 
@@ -281,9 +302,17 @@ async function composeAvatarCard(member, config = {}) {
     if (lines.length === 0) return null;
 
     const accentColor = parseHexColor(config.accentColor, 0x57f287ff);
-    // Dark scrim behind the text keeps it readable on light backgrounds.
-    const scrimOpacity = Math.min(1, Math.max(0, Number(config?.card?.scrimOpacity ?? 0.6)));
-    const scrimColor = config?.card?.scrim === false ? null : (0x00000000 | Math.round(scrimOpacity * 255));
+    // Plate behind the text: `scrimColor` is the tint (dark violet by default
+    // for the YT HIVE artwork) and `scrimOpacity` how solid it looks.
+    const scrimOpacity = Math.min(1, Math.max(0, Number(config?.card?.scrimOpacity ?? 0.62)));
+    const scrimTint = parseHexColor(config?.card?.scrimColor, 0x000000);
+    const scrimColor = config?.card?.scrim === false
+        ? null
+        : (((((scrimTint >>> 8) & 0xffffff) << 8) | Math.round(scrimOpacity * 255)) >>> 0);
+    // 2px accent hairline around the plate (off with `card.scrimBorder: false`).
+    const borderColor = scrimColor === null || config?.card?.scrimBorder === false
+        ? null
+        : (((((accentColor >>> 8) & 0xffffff) << 8) | 150) >>> 0);
 
     const avatarSize = Math.round(Math.min(height * 0.52, width * 0.3));
     const avatarX = Math.round(width * 0.055);
@@ -303,7 +332,8 @@ async function composeAvatarCard(member, config = {}) {
         textX,
         textWidth,
         accentColor,
-        scrimColor
+        scrimColor,
+        borderColor
     });
 
     if (!background) {

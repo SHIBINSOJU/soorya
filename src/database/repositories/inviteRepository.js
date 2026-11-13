@@ -69,6 +69,36 @@ async function getStats(guildId, userId) {
     }
 }
 
+/** Read-only: who invited this member (null when unknown). */
+async function getJoinRecord(guildId, memberId) {
+    if (isUsingLocalStorage()) {
+        // Local disk is the source of truth in this mode — never fall through
+        // to a Mongoose query that would buffer while disconnected.
+        try {
+            const doc = await getMemberStore().findOne({ guildId, memberId });
+            return doc ? { inviterId: doc.inviterId || null, code: doc.code || null, isFake: !!doc.isFake } : null;
+        } catch (err) {
+            logger.error(`inviteRepository.getJoinRecord local failed: ${err.message}`);
+            return null;
+        }
+    }
+
+    if (isDatabaseReady()) {
+        try {
+            const doc = await MemberInvite.findOne({ guildId, memberId }).lean();
+            if (doc) {
+                return { inviterId: doc.inviterId || null, code: doc.code || null, isFake: !!doc.isFake };
+            }
+        } catch (err) {
+            logger.error(`inviteRepository.getJoinRecord DB failed: ${err.message}`);
+        }
+    }
+
+    const mem = memoryMembers.get(memberKey(guildId, memberId));
+    if (!mem) return null;
+    return { inviterId: mem.inviterId || null, code: mem.code || null, isFake: !!mem.isFake };
+}
+
 async function recordJoin(guildId, memberId, inviterId, code, isFake = false) {
     if (isUsingLocalStorage()) {
         try {
@@ -367,6 +397,7 @@ async function getLeaderboard(guildId, limit = 10, skip = 0) {
 
 module.exports = {
     getStats,
+    getJoinRecord,
     recordJoin,
     recordLeave,
     addBonus,

@@ -128,6 +128,8 @@ welcome:
   channelId: "YOUR_WELCOME_CHANNEL_ID"
   layout: "card"                          # "card" = one generated image, "classic" = copy blocks
   accentColor: "#A855F7"                  # accent bar + avatar ring
+  greeting: "👋 Welcome, {displayname}!"  # line above the card ("" = hidden)
+  invitedBy: "📨 Invited by {inviter}"    # small line under the card ("" = hidden)
   footer:
     enabled: true                         # small line under the card, inside the container
     text: "Enjoy your stay in YT HIVE."    # never drawn into the image
@@ -139,11 +141,15 @@ welcome:
     title: "{server}"
     subtitle: "You are member #{membercount} of the hive"
     mention: "{mention}"                  # the ping above the card ("" = no ping)
-    icon: true                            # server icon next to the mention line
-    scrim: true                           # translucent panel behind the text
-    scrimOpacity: 0.45
+    icon: true                            # server icon next to the greeting/mention
+    scrim: true                           # rounded plate behind the text
+    scrimColor: "#231044"                 # plate tint ("#000000" = plain black)
+    scrimOpacity: 0.8                     # 0 = invisible, 1 = solid
+    scrimBorder: true                     # 2px accent hairline around the plate
 ```
 The card is rendered in memory for every join (avatar on the left, text on the right). Change `card.background.path` to swap the artwork — any PNG/JPG, or an animated GIF if you want it to move. `/welcome` edits all of this live per server.
+
+`{inviter}` comes from the invite-tracking data (the member is pinged only by `{mention}`; the inviter shows as a name, not a notification). If the invite cannot be resolved the line reads "Invited by someone", and a slow/absent database can never delay the welcome by more than ~1.5s.
 
 ---
 
