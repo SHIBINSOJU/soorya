@@ -65,7 +65,11 @@ function getInviteConfig() {
  */
 async function resolveInviteConfig(guild) {
     const cfg = getInviteConfig();
-    if (!guild?.id) return cfg;
+    // The config.yml channel stays available as a fallback: a per-guild
+    // override that points at a deleted channel must not silence
+    // announcements entirely.
+    const configChannelId = cfg.logChannelId || '';
+    if (!guild?.id) return { ...cfg, configChannelId };
 
     let stored = null;
     try {
@@ -78,13 +82,18 @@ async function resolveInviteConfig(guild) {
     return {
         ...cfg,
         enabled: stored?.enabled ?? cfg.enabled,
-        logChannelId: stored?.channelId || cfg.logChannelId || ''
+        logChannelId: stored?.channelId || configChannelId,
+        configChannelId
     };
 }
 
 async function handleMemberJoin(member) {
+    logger.info(`InviteTracker: join detected for ${member.user?.tag || member.id} in guild ${member.guild?.id}.`);
     const cfg = await resolveInviteConfig(member.guild);
-    if (!cfg.enabled) return null;
+    if (!cfg.enabled) {
+        logger.warn(`InviteTracker: invite tracking is disabled for guild ${member.guild?.id} (GuildSettings.invites.enabled = false).`);
+        return null;
+    }
 
     try {
         const inviteResult = await findUsedInvite(member.guild);
@@ -205,39 +214,51 @@ function pickJoinTemplate(cfg, inviteResult, alt, isRejoin) {
 }
 
 async function resolveAnnouncementChannel(guild, cfg) {
-    const channelId = cfg.logChannelId || '';
-    if (!channelId) return null;
+    const candidates = [cfg.logChannelId, cfg.configChannelId]
+        .map(id => (id ? String(id) : ''))
+        .filter((id, index, list) => id && list.indexOf(id) === index);
 
-    const channel = await withRetry(
-        () => guild.channels.fetch(String(channelId)),
-        { attempts: 2 }
-    ).catch(() => null);
-
-    if (!channel) {
-        logger.warn(`InviteTracker: announcement channel ${channelId} does not exist in guild ${guild.id}.`);
+    if (candidates.length === 0) {
+        logger.warn(`InviteTracker: no announcement channel configured for guild ${guild.id} (set invites.logChannelId or run /invites channel).`);
         return null;
     }
-    if (!channel.isTextBased?.() || !channel.viewable) {
-        logger.warn(`InviteTracker: cannot post in channel ${channelId} (guild ${guild.id}) — check View Channel / Send Messages for the bot.`);
-        return null;
+
+    for (const channelId of candidates) {
+        const channel = await withRetry(
+            () => guild.channels.fetch(channelId),
+            { attempts: 2 }
+        ).catch(() => null);
+
+        if (!channel) {
+            logger.warn(`InviteTracker: announcement channel ${channelId} does not exist in guild ${guild.id}.`);
+            continue;
+        }
+        if (!channel.isTextBased?.() || !channel.viewable) {
+            logger.warn(`InviteTracker: cannot post in channel ${channelId} (guild ${guild.id}) — check View Channel / Send Messages for the bot.`);
+            continue;
+        }
+        return channel;
     }
-    return channel;
+
+    return null;
 }
 
+/** Sends a plain-text announcement. Returns the channel used, or null. */
 async function sendAnnouncement(guild, cfg, text) {
-    if (!text) return false;
+    if (!text) return null;
     const channel = await resolveAnnouncementChannel(guild, cfg);
-    if (!channel) return false;
+    if (!channel) return null;
 
     try {
         await withRetry(() => channel.send({
             content: text,
             allowedMentions: { parse: ['users'] }
         }), { attempts: 2 });
-        return true;
+        logger.info(`InviteTracker: announcement sent to #${channel.name} (${channel.id}) in guild ${guild.id}.`);
+        return channel;
     } catch (err) {
         logger.error(`InviteTracker: announcement failed in ${guild.id}: ${err.message}`);
-        return false;
+        return null;
     }
 }
 
@@ -360,5 +381,8 @@ module.exports = {
     getInviteConfig,
     resolveInviteConfig,
     handleMemberJoin,
-    handleMemberLeave
+    handleMemberLeave,
+    sendAnnouncement,
+    fillTemplate,
+    buildTemplateData
 };

@@ -15,7 +15,12 @@ const guildSettingsRepository = require('../../../database/repositories/guildSet
 const logger = require('../../../core/logger');
 const { withRetry } = require('../../../utils/retry');
 const { cacheGuildInvites } = require('../services/inviteCache');
-const { resolveInviteConfig } = require('../services/inviteService');
+const {
+    resolveInviteConfig,
+    sendAnnouncement,
+    fillTemplate,
+    buildTemplateData
+} = require('../services/inviteService');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -99,6 +104,10 @@ module.exports = {
                 .setDescription('Re-synchronize the server invite cache with Discord.')
         )
         .addSubcommand(sub =>
+            sub.setName('test')
+                .setDescription('Send a test invite announcement to the configured channel.')
+        )
+        .addSubcommand(sub =>
             sub.setName('channel')
                 .setDescription('Set or view the channel for join/leave/rejoin/alt invite messages.')
                 .addChannelOption(opt =>
@@ -151,6 +160,8 @@ module.exports = {
                 await handleReset(interaction);
             } else if (subcommand === 'sync') {
                 await handleSync(interaction);
+            } else if (subcommand === 'test') {
+                await handleTest(interaction);
             } else if (subcommand === 'channel') {
                 await handleChannel(interaction);
             }
@@ -336,6 +347,47 @@ async function handleSync(interaction) {
 
     return interaction.editReply({
         content: `✅ Successfully re-synchronized invite cache for **${interaction.guild.name}**!`
+    });
+}
+
+async function handleTest(interaction) {
+    if (!hasStaffPermission(interaction)) {
+        return interaction.editReply({
+            content: '❌ You need the **Manage Server** permission to test invite announcements.',
+            flags: MessageFlags.Ephemeral
+        });
+    }
+
+    const cfg = await resolveInviteConfig(interaction.guild);
+    if (!cfg.enabled) {
+        return interaction.editReply({
+            content: '❌ Invite tracking is disabled for this server (`invites.enabled` / GuildSettings).',
+            flags: MessageFlags.Ephemeral
+        });
+    }
+
+    const text = fillTemplate(
+        cfg.joinMessage,
+        buildTemplateData(interaction.member, { type: 'invite', code: 'TEST' }, interaction.user, null, null)
+    );
+
+    const channel = await sendAnnouncement(
+        interaction.guild,
+        cfg,
+        `${text}\n-# Test announcement from \`/invites test\`.`
+    );
+
+    if (!channel) {
+        return interaction.editReply({
+            content: '❌ Could not post the test announcement. Check `invites.logChannelId`, that the channel still exists, ' +
+                'and that the bot can **View Channel** + **Send Messages** there (the exact reason is logged on the server).',
+            flags: MessageFlags.Ephemeral
+        });
+    }
+
+    return interaction.editReply({
+        content: `✅ Test announcement sent to <#${channel.id}>. Join/leave messages will appear there.`,
+        flags: MessageFlags.Ephemeral
     });
 }
 

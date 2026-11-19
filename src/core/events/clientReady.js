@@ -1,4 +1,4 @@
-const { REST, Routes } = require('discord.js');
+const { REST, Routes, GatewayIntentBits } = require('discord.js');
 const logger = require('../logger');
 const startupLogger = require('../startupLogger');
 const { withRetry } = require('../../utils/retry');
@@ -9,6 +9,7 @@ module.exports = function createClientReadyEvent(ctx) {
         once: true,
         async execute(client) {
             logger.info(`Logged in as ${client.user.tag}!`);
+            warnAboutMissingIntents(client);
 
             const stats = ctx.moduleManager.getStats();
             const guildCount = client.guilds.cache.size;
@@ -34,6 +35,19 @@ module.exports = function createClientReadyEvent(ctx) {
         }
     };
 };
+
+function warnAboutMissingIntents(client) {
+    // Join-driven features (welcome, autorole, invite tracking, raid guard) all
+    // hang off guildMemberAdd, which the gateway only emits with the Server
+    // Members intent. Say so loudly instead of silently doing nothing.
+    const intents = client.options?.intents;
+    if (!intents?.has?.(GatewayIntentBits.GuildMembers)) {
+        logger.error('⚠️ Server Members intent is DISABLED — guildMemberAdd never fires, so welcome messages, autoroles and invite announcements will not be sent. Enable it under Bot → Privileged Gateway Intents in the Discord Developer Portal.');
+    }
+    if (!intents?.has?.(GatewayIntentBits.MessageContent)) {
+        logger.warn('⚠️ Message Content intent is DISABLED — automod word filters, antilink and message-text logging will not see message contents.');
+    }
+}
 
 function sanitizeError(error) {
     let msg = String(error?.stack || error?.message || error || 'Unknown error');
